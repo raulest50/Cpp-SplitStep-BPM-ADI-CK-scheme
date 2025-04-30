@@ -1,4 +1,4 @@
-**Split-Step Beam Propagation Method (BPM) with ADI Crank–Nicolson**
+# Split-Step Beam Propagation Method (BPM) with ADI Crank–Nicolson
 
 This README outlines the mathematical formulation and numerical implementation of the split-step BPM using an Alternating-Direction Implicit (ADI) Crank–Nicolson scheme for solving the paraxial wave equation in two transverse dimensions.
 
@@ -6,109 +6,125 @@ This README outlines the mathematical formulation and numerical implementation o
 
 ## 1. Governing Equation
 
-We solve the scalar **paraxial wave equation** for the complex field \(\Psi(x,y,z)\):
+We solve the scalar paraxial wave equation for the complex field $\Psi(x,y,z)$:
 
-\[
-\frac{\partial \Psi}{\partial z} =
-\underbrace{\frac{i}{2k} \nabla_\perp^2 \Psi}_{\text{diffraction}}
-+ \underbrace{i k n_2 |\Psi|^2 \Psi}_{\text{nonlinear phase}} \,.
-  \]
+```math
+\frac{\partial \Psi}{\partial z} = \frac{i}{2k} \nabla_\perp^2 \Psi + i k n_2 |\Psi|^2 \Psi
+```
 
-- \(k = 2\pi / \lambda\): vacuum wavenumber
-- \(\nabla_\perp^2 = \partial^2/\partial x^2 + \partial^2/\partial y^2\)
-- \(n_2\): nonlinear refractive index coefficient
+where:
+- $k = 2\pi / \lambda$ (vacuum wavenumber)
+- $\nabla_\perp^2 = \partial^2/\partial x^2 + \partial^2/\partial y^2$ (transverse Laplacian)
+- $n_2$ = nonlinear refractive index coefficient
 
+---
 
-## 2. Operator Splitting (Split‑Step)
+## 2. Operator Splitting (Split-Step)
 
-We split propagation over a small step \(\Delta z\) into two operators:
+Using Strang splitting over a small step $\Delta z$:
 
-1. **Nonlinear operator**: \(\mathcal{N}[\Psi] = i k n_2 |\Psi|^2 \Psi\)
-2. **Linear (diffraction) operator**: \(\mathcal{L}[\Psi] = \tfrac{i}{2k} \nabla_\perp^2 \Psi\)
+```math
+\Psi(z + \Delta z) \approx e^{\frac{\Delta z}{2}N} \; e^{\Delta z L} \; e^{\frac{\Delta z}{2}N} \; \Psi(z)
+```
 
-Using a symmetric (Strang) split:
+- **Nonlinear operator**: $N[\Psi] = i k n_2 |\Psi|^2 \Psi$
+- **Linear (diffraction) operator**: $L[\Psi] = \tfrac{i}{2k} \nabla_\perp^2 \Psi$
 
-\[
-\Psi(z + \Delta z) \approx e^{\tfrac{\Delta z}{2} \mathcal{N}} \, e^{\Delta z \mathcal{L}} \, e^{\tfrac{\Delta z}{2} \mathcal{N}} \, \Psi(z).
-\]
+The nonlinear half-step is applied in closed form:
 
-- The **nonlinear phase step** is applied in closed form:
-  \[ \Psi \to \Psi \exp\bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\bigr). \]
+```math
+\Psi \to \Psi \exp\Bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\Bigr)
+```
 
-- The **linear diffraction** remains; we discretize and march it using ADI Crank–Nicolson.
-
+---
 
 ## 3. Crank–Nicolson Discretization for Diffraction
 
 Starting from:
-\[ \frac{\partial \Psi}{\partial z} = \tfrac{i}{2k} \nabla_\perp^2 \Psi, \]
-Crank–Nicolson gives for one full \(\Delta z\) step:
 
-\[
-\frac{\Psi^{n+1} - \Psi^n}{\Delta z}
-= \frac{i}{4k} \nabla_\perp^2 \bigl(\Psi^{n+1} + \Psi^n\bigr).
-\]
+```math
+\frac{\partial \Psi}{\partial z} = \frac{i}{2k} \nabla_\perp^2 \Psi
+```
 
-Rearrange into a matrix equation:
+Crank–Nicolson over a full $\Delta z$ gives:
 
-\[
-\Bigl( I - \tfrac{i \Delta z}{4k} \nabla_\perp^2 \Bigr) \Psi^{n+1}
-= \Bigl( I + \tfrac{i \Delta z}{4k} \nabla_\perp^2 \Bigr) \Psi^n.
-\]
+```math
+\frac{\Psi^{n+1} - \Psi^n}{\Delta z} = \frac{i}{4k} \nabla_\perp^2 \bigl(\Psi^{n+1} + \Psi^n\bigr)
+```
 
-In two dimensions, directly inverting the full \(xy\)-Laplacian is costly. Instead, we use **ADI**:
+Rearrange:
 
-1. **Half-step in x**:
-   \[
-   \Bigl( I - \tfrac{i \Delta z}{4k} \partial_x^2 \Bigr) \Psi^{*}
-   = \Bigl( I + \tfrac{i \Delta z}{4k} \partial_x^2 \Bigr) \Psi^n.
-   \]
-2. **Half-step in y**:
-   \[
-   \Bigl( I - \tfrac{i \Delta z}{4k} \partial_y^2 \Bigr) \Psi^{n+1}
-   = \Bigl( I + \tfrac{i \Delta z}{4k} \partial_y^2 \Bigr) \Psi^{*}.
-   \]
+```math
+\Bigl(I - \frac{i\,\Delta z}{4k} \nabla_\perp^2\Bigr)\Psi^{n+1} = \Bigl(I + \frac{i\,\Delta z}{4k} \nabla_\perp^2\Bigr)\Psi^n
+```
 
-Each sub‑step involves solving a **tridiagonal** system along one coordinate, which is efficiently done via the Thomas algorithm.
+Direct inversion of the 2D Laplacian is expensive. Instead, use **ADI**:
 
+1. **Half-step in $x$**:
+
+   ```math
+   \Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^* = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^n
+   ```
+
+2. **Half-step in $y$**:
+
+   ```math
+   \Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^{n+1} = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^*
+   ```
+
+Each sub-step is a tridiagonal system solved via the Thomas algorithm.
+
+---
 
 ## 4. Spatial Discretization
 
 On a uniform grid:
 
-- Grid points \(x_i = (i - N_x/2) \Delta x\), \(i=0,\dots,N_x-1\)
-- Second derivative via central differences:
-  \[
-  \partial_x^2 \Psi_i \approx \frac{\Psi_{i+1} - 2\Psi_i + \Psi_{i-1}}{(\Delta x)^2}.
-  \]
+```math
+x_i = \bigl(i - \tfrac{N_x}{2}\bigr)\Delta x,  \quad  y_j = \bigl(j - \tfrac{N_y}{2}\bigr)\Delta y
+```
 
-Thus each ADI half‑step leads to a banded (tridiagonal) linear system:
+Central differences for second derivatives:
 
-\[
-\Bigl(1 + r\Bigr) \Psi_{i}^{*} - \tfrac{r}{2} \bigl(\Psi_{i+1}^{*} + \Psi_{i-1}^{*}\bigr)
-= \Bigl(1 - r\Bigr) \Psi_{i}^{n} + \tfrac{r}{2} \bigl(\Psi_{i+1}^{n} + \Psi_{i-1}^{n}\bigr),
-\]
+```math
+\frac{\partial^2 \Psi}{\partial x^2}\Big|_i \approx \frac{\Psi_{i+1} - 2\Psi_i + \Psi_{i-1}}{(\Delta x)^2}
+```
 
-with \(r = i\,\Delta z/(4k\Delta x^2)\). A similar system applies in \(y\).
+Resulting tridiagonal equation for the $x$ half-step (similar for $y$):
 
+```math
+(1 + r)\Psi_i^* - \frac{r}{2}(\Psi_{i+1}^* + \Psi_{i-1}^*) = (1 - r)\Psi_i^n + \frac{r}{2}(\Psi_{i+1}^n + \Psi_{i-1}^n)
+```
 
-## 5. Full Propagation Loop
+with
 
-1. **Initialize** \(\Psi(x,y,0)\) at \(z=0\).
-2. **For** each \(n=0,1,\dots,N_z-1\):
-    1. Nonlinear half-step:  
-       \(\Psi \leftarrow \Psi \exp\bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\bigr)\)
-    2. Linear ADI (x then y): solve tridiagonal systems
-    3. Nonlinear half-step again
-3. **Output** \(\Psi(x,y,z_{\mathrm{final}})\) or intensity \( |\Psi|^2 \).
-
-
-## 6. References
-
-- Agrawal, G. P., *Nonlinear Fiber Optics*, 5th ed.
-- Hardin, R. H. & Tappert, F. D., "Applications of the split-step Fourier method to the numerical solution of nonlinear and variable coefficient wave equations."
-- Muir, T., "ADI Schemes for Diffraction Problems."
+```math
+r = \frac{i\,\Delta z}{4\,k\,(\Delta x)^2}
+```
 
 ---
 
+## 5. Full Propagation Loop
+
+1. **Initialize** $\Psi(x,y,0)$ on the $(x,y)$ grid.
+2. **For** each step $n = 0,1,\dots,N_z-1$:
+    1. Nonlinear half-step:
+       ```math
+       \Psi \leftarrow \Psi \exp\Bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\Bigr)
+       ```
+    2. Linear ADI:
+        - solve $x$–direction tridiagonal → $\Psi^*$
+        - solve $y$–direction tridiagonal → $\Psi^{n+1}$
+    3. Nonlinear half-step again
+3. **Output** $\Psi(x,y,z_{\mathrm{final}})$ or intensity $|\Psi|^2$.
+
+---
+
+## 6. References
+
+- Agrawal, G. P., *Nonlinear Fiber Optics*, 5th ed.
+- Hardin & Tappert, “Split-step Fourier method for nonlinear wave equations.”
+- Descriptions of the Thomas algorithm for tridiagonal systems.
+
+*End of README.*
 
