@@ -1,0 +1,30 @@
+# JetBrains CLion
+.idea/
+
+# CMake build directories
+cmake-build-debug/
+build/
+
+# CMake intermediate files
+CMakeFiles/
+CMakeCache.txt
+Makefile
+*.cmake
+
+# Compiled object files and libraries
+*.o
+*.obj
+*.lib
+*.a
+*.so
+*.dll
+*.exe
+
+# Logs, user-specific settings
+*.log
+*.user
+*.swp
+
+# macOS / Windows artifacts
+.DS_Store
+Thumbs.db
