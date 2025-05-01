@@ -62,15 +62,11 @@ Direct inversion of the 2D Laplacian is expensive. Instead, use **ADI**:
 
 1. **Half-step in $x$**:
 
-   ```math
-   \Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^* = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^n
-   ```
+   $$\Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^* = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_x^2\Bigr)\Psi^n$$
 
 2. **Half-step in $y$**:
 
-   ```math
-   \Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^{n+1} = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^*
-   ```
+   $$\Bigl(I - \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^{n+1} = \Bigl(I + \frac{i\,\Delta z}{4k}\,\partial_y^2\Bigr)\Psi^*$$
 
 Each sub-step is a tridiagonal system solved via the Thomas algorithm.
 
@@ -80,9 +76,9 @@ Each sub-step is a tridiagonal system solved via the Thomas algorithm.
 
 On a uniform grid:
 
-```math
-x_i = \bigl(i - \tfrac{N_x}{2}\bigr)\Delta x,  \quad  y_j = \bigl(j - \tfrac{N_y}{2}\bigr)\Delta y
-```
+
+$$x_i = \bigl(i - \tfrac{N_x}{2}\bigr)\Delta x,  \quad  y_j = \bigl(j - \tfrac{N_y}{2}\bigr)\Delta y$$
+
 
 Central differences for second derivatives:
 
@@ -109,13 +105,13 @@ r = \frac{i\,\Delta z}{4\,k\,(\Delta x)^2}
 1. **Initialize** $\Psi(x,y,0)$ on the $(x,y)$ grid.
 2. **For** each step $n = 0,1,\dots,N_z-1$:
     1. Nonlinear half-step:
-       ```math
-       \Psi \leftarrow \Psi \exp\Bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\Bigr)
-       ```
-    2. Linear ADI:
+       
+       $$\Psi \leftarrow \Psi \exp\Bigl(i k n_2 |\Psi|^2 \tfrac{\Delta z}{2}\Bigr)$$
+       
+    3. Linear ADI:
         - solve $x$–direction tridiagonal → $\Psi^*$
         - solve $y$–direction tridiagonal → $\Psi^{n+1}$
-    3. Nonlinear half-step again
+    4. Nonlinear half-step again
 3. **Output** $\Psi(x,y,z_{\mathrm{final}})$ or intensity $|\Psi|^2$.
 
 ---
@@ -125,6 +121,4 @@ r = \frac{i\,\Delta z}{4\,k\,(\Delta x)^2}
 - Agrawal, G. P., *Nonlinear Fiber Optics*, 5th ed.
 - Hardin & Tappert, “Split-step Fourier method for nonlinear wave equations.”
 - Descriptions of the Thomas algorithm for tridiagonal systems.
-
-*End of README.*
 
