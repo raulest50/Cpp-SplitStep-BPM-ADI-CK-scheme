@@ -46,7 +46,7 @@ void thomas1_test(){
     vector<complexf> d = {complexf(5,1), complexf(6,2), complexf(6,1), complexf(5,0)};
     vector<complexf> x(N);
 
-    custom_solvers::thomas1(a, b, c, d, x);
+    custom_solvers::custom_thomas_solver(a, b, c, d, x);
 
     cout << "Solution x:\n";
     for (const auto& val : x)
